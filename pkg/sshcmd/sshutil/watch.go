@@ -2,13 +2,15 @@ package sshutil
 
 import (
 	"fmt"
-	"github.com/wonderivan/logger"
 	"path"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/wonderivan/logger"
 )
 
+const oneKBByte = 1024
 const oneMBByte = 1024 * 1024
 
 //WatchFileSize is
@@ -32,8 +34,8 @@ func (ss *SSH) LoggerFileSize(host, filename string, size int) {
 	}
 }
 
-//RemoteFilExist is
-func (ss *SSH) IsFilExist(host, remoteFilePath string) bool {
+//RemoteFileExist is
+func (ss *SSH) IsFileExist(host, remoteFilePath string) bool {
 	// if remote file is
 	// ls -l | grep aa | wc -l
 	remoteFileName := path.Base(remoteFilePath) // aa
@@ -46,7 +48,7 @@ func (ss *SSH) IsFilExist(host, remoteFilePath string) bool {
 	count, err := strconv.Atoi(strings.TrimSpace(data))
 	defer func() {
 		if r := recover(); r != nil {
-			logger.Error("[ssh][%s]RemoteFilExist:%s", host, err)
+			logger.Error("[ssh][%s]RemoteFileExist:%s", host, err)
 		}
 	}()
 	if err != nil {
@@ -56,5 +58,16 @@ func (ss *SSH) IsFilExist(host, remoteFilePath string) bool {
 		return false
 	} else {
 		return true
+	}
+}
+
+func toSizeFromInt(length int) (float64, string) {
+	isMb := length/oneMBByte > 1
+	value, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(length)/oneMBByte), 64)
+	if isMb {
+		return value, "MB"
+	} else {
+		value, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", float64(length)/oneKBByte), 64)
+		return value, "KB"
 	}
 }
